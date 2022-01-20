@@ -7,7 +7,10 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/access/
 contract Allowance is Ownable {
     mapping(address => uint) public allowance;
 
+    event AllowanceChanged(address indexed _forWho, address indexed _byWho, uint _oldAmount, uint _newAmount);
+
     function setAllowance(address _to, uint _amount) public onlyOwner {
+        emit AllowanceChanged(_to, msg.sender, allowance[_to], _amount);
         allowance[_to] = _amount;
     }
 
@@ -18,6 +21,7 @@ contract Allowance is Ownable {
 
 
     function reduceAllowance(address _to, uint _amount) internal ownerOrAllowed(_amount) {
+        emit AllowanceChanged(_to, msg.sender, allowance[_to], allowance[_to] - _amount);
         allowance[_to] -= _amount;
     }
 
@@ -31,6 +35,7 @@ contract SharedWallet is Ownable, Allowance {
     }
 
     function withdrawMoney(address payable _to, uint _amount) public ownerOrAllowed(_amount) {
+        require(_amount <= address(this).balance, "Contract doesn't own enough money.");
         if(msg.sender != owner()) {
             reduceAllowance(msg.sender, _amount);
         }
