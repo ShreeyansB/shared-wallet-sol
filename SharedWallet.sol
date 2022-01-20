@@ -2,9 +2,11 @@ pragma solidity ^0.8.11;
 // SPDX-License-Identifier: MIT
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/access/Ownable.sol";
-
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 
 contract Allowance is Ownable {
+
+    using SafeMath for uint;
     mapping(address => uint) public allowance;
 
     event AllowanceChanged(address indexed _forWho, address indexed _byWho, uint _oldAmount, uint _newAmount);
@@ -19,10 +21,9 @@ contract Allowance is Ownable {
     _;
     }
 
-
     function reduceAllowance(address _to, uint _amount) internal ownerOrAllowed(_amount) {
-        emit AllowanceChanged(_to, msg.sender, allowance[_to], allowance[_to] - _amount);
-        allowance[_to] -= _amount;
+        emit AllowanceChanged(_to, msg.sender, allowance[_to], allowance[_to].sub(_amount));
+        allowance[_to] = allowance[_to].sub(_amount);
     }
 
 
@@ -45,6 +46,10 @@ contract SharedWallet is Ownable, Allowance {
         emit MoneySent(_to, _amount);
         _to.transfer(_amount);
     }    
+
+    function renounceOwnership() public override onlyOwner {
+        revert("Cannot renounceOwnership here.");
+    }
 
 }
 
