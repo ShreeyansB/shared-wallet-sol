@@ -30,8 +30,11 @@ contract Allowance is Ownable {
 
 contract SharedWallet is Ownable, Allowance {
 
-    receive() external payable {
+    event MoneySent(address indexed _to, uint _amount);
+    event MoneyReceived(address indexed _from, uint _amount);
 
+    receive() external payable {
+        emit MoneyReceived(msg.sender, msg.value);
     }
 
     function withdrawMoney(address payable _to, uint _amount) public ownerOrAllowed(_amount) {
@@ -39,6 +42,7 @@ contract SharedWallet is Ownable, Allowance {
         if(msg.sender != owner()) {
             reduceAllowance(msg.sender, _amount);
         }
+        emit MoneySent(_to, _amount);
         _to.transfer(_amount);
     }    
 
